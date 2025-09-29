@@ -10,15 +10,8 @@ module register_file (
     output [31:0] data2_out
 );
 
-reg [31:0] write_select; // change to reg
-
 reg  [31:0] register [31:0];
 integer i; // declare loop variable
-
-always @(*) begin
-    write_select = 32'd0;
-    write_select[rd1] = 1'b1;
-end
 
 // Register write part
 always @(posedge clk) begin
@@ -27,12 +20,8 @@ always @(posedge clk) begin
             register[i] <= 32'd0;
         end
     end else begin
-        if (write_enable) begin
-            for (i  = 0; i < 32; i = i+1) begin
-                if (write_select[i] == 1) begin
-                    register[i] <= i == 0 ? 32'd0 : data_in;
-                end
-            end 
+        if (write_enable && (rd1 != 5'b0)) begin
+            register[rd1] <= data_in;
         end
     end
 end

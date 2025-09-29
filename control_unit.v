@@ -12,7 +12,6 @@ module control_unit (
     output reg lbu, lhu,
     output reg jl,
     output reg jlr,
-    output reg lui,
     output i_wr_e,
     output reg [5:0] ALU_op
 );
@@ -196,7 +195,6 @@ always @(*) begin
             memreg = 2'b11;
         end
         U_load : begin
-            lui    = 1'b1;
             reg_we = 1'b1;
             memreg = 2'b10;
         end

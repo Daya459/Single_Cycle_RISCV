@@ -1,6 +1,10 @@
 module top_module (
     input clk,
-    input rst
+    input rst,
+    input [31:0] data_mem_in,
+    input [31:0] input_instr,
+    output zero,
+    output overflow
 );
     // Wires for interconnection
     // Control signals from Control Unit to Datapath
@@ -16,7 +20,6 @@ module top_module (
     wire        lbu, lhu;
     wire        jl;
     wire        jlr;
-    wire        lui;
     wire        i_wr_e;
     wire [5:0]  ALU_op;
 
@@ -36,11 +39,20 @@ module top_module (
         .i_wr_e(i_wr_e),
         .d_wr_e(d_wr_e),
         .d_rd_e(d_rd_e),
-        .sb(sb), .sh(sh), .sw(sw),
-        .lb(lb), .lh(lh), .lw(lw),
-        .lbu(lbu), .lhu(lhu),
+        .zero(zero),
+        .overflow(overflow),
+        .sb(sb), 
+        .sh(sh), 
+        .sw(sw),
+        .lb(lb), 
+        .lh(lh), 
+        .lw(lw),
+        .lbu(lbu), 
+        .lhu(lhu),
         .jl(jl),
         .jlr(jlr),
+        .data_mem_in(data_mem_in),
+        .input_instr(input_instr),
         .ALU_op(ALU_op),
         .instruction(instruction) // Output from datapath
     );
@@ -65,7 +77,6 @@ module top_module (
         .lhu(lhu),
         .jl(jl), 
         .jlr(jlr), 
-        .lui(lui), 
         .i_wr_e(i_wr_e),
         .ALU_op(ALU_op)
     );

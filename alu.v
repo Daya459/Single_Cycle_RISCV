@@ -38,9 +38,9 @@ always @(*) begin
         4'b0101 : result = {30'b0, !(result_sum[31] ^ overflow)}; // For bge
         4'b0110 : result = {30'b0, zero};                         // For beq
         4'b0111 : result = {30'b0, !zero};                        // For bne
-        4'b1000 : result = a << b;                                // For sll and slli 
-        4'b1001 : result = a >> b;                                // For srl and srli
-        4'b1010 : result = a >>> b;                               // For sra and srai
+        4'b1000 : result = a << b[4:0];                                // For sll and slli 
+        4'b1001 : result = a >> b[4:0];                                // For srl and srli
+        4'b1010 : result = a >>> b[4:0];                               // For sra and srai
         4'b1011 : result = {30'b0,  !cout};                      // For bltu and sltu
         4'b1100 : result = {30'b0,  cout};                       // For bgeu
         default: result = 32'hXXXXXXXX;

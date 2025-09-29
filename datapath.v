@@ -17,20 +17,20 @@ module datapath(
     input jl,
     input jlr,
     input [5:0] ALU_op,
+    input [31:0] data_mem_in,
+    input [31:0] input_instr,
     // Outputs
+    output zero,
+    output overflow,
     output [31:0] instruction
     );
 
     reg  [31:0] PC;
     wire [31:0] PC_inc;
-    wire [31:0] PC_imm;
-    wire [31:0] PC_next;
-    wire [31:0] input_instr;
 
     reg [31:0] reg_data_in;
     wire [31:0] data1_out, data2_out;
 
-    wire [31:0] data_mem_in;
     wire [31:0] data_mem_out;
 
     wire [31:0] imm;
@@ -39,10 +39,6 @@ module datapath(
     wire [31:0] ALU_in2;
 
     wire jump;
-    wire zero;
-    wire overflow;
-
-    wire [31:0] imm_add;
 
     assign PC_inc = PC + 4;
     assign jump   = jl || jlr;
