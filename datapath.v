@@ -2,48 +2,58 @@
 module datapath(
     input clk,
     input rst,
-    input PC_rst
+    input PC_rst,
+    input auipc,
+    input branch,
+    input memreg,
+    input reg_we,
+    input ALU_in_sel,
+    input i_wr_e,
+    input d_wr_e,
+    input d_rd_e,
+    input sb, sh, sw,
+    input lb, lh, lw,
+    input lbu, lhu,
+    input jl,
+    input jlr,
+    input [5:0] ALU_op,
+    // Outputs
+    output [31:0] instruction
     );
 
-    wire instr_wr_e;
-    reg [31:0] PC;
+    reg  [31:0] PC;
     wire [31:0] PC_inc;
     wire [31:0] PC_imm;
     wire [31:0] PC_next;
     wire [31:0] input_instr;
-    wire [31:0] instruction;
 
-    wire reg_we;
-    wire [31:0] reg_data_in;
+    reg [31:0] reg_data_in;
     wire [31:0] data1_out, data2_out;
 
-    wire [31:0] data_mem_data_in;
-    wire data_mem_WR_E;
-    wire data_mem_RD_E;
-    wire sb, sh, sw;
-    wire lb, lh, lw;
-    wire lbu, lhu;
-    wire [31:0] data_mem_data_out;
+    wire [31:0] data_mem_in;
+    wire [31:0] data_mem_out;
 
-    wire [31:0] imm_add;
-    wire [5:0] ALU_op;
+    wire [31:0] imm;
     wire [31:0] ALU_out;
     wire [31:0] ALU_in1;
     wire [31:0] ALU_in2;
-    wire PC_sel;
-    wire branch;
-    wire memreg;
-    wire ALU_src;
+
+    wire jump;
     wire zero;
     wire overflow;
+
+    wire [31:0] imm_add;
+
+    assign PC_inc = PC + 4;
+    assign jump   = jl || jlr;
 
     always @(posedge clk ) begin
         if (!rst) begin
             PC <= PC_rst;
         end else begin
-            if (PC_sel) begin
-                if (jal || branch) begin
-                    PC <= PC + (imm_add << 1);
+            if (jump || (branch && ALU_out[0])) begin
+                if (jl || branch) begin
+                    PC <= PC + (imm << 1);
                 end else begin
                     PC <= ALU_out;
                 end
@@ -53,19 +63,30 @@ module datapath(
         end
     end
 
-    assign PC_inc = PC + 4;
-    assign PC_sel  = jl || jlr || (branch && ALU_out[31]);
-
     instruction_memory inst_mem (
         .address(PC),
         .data_in(input_instr),
         .clk(clk),
-        .WR_E(instr_wr_e),
+        .WR_E(i_wr_e),
         .instruction(instruction)
     );
 
-    assign reg_data_in = jl || jlr ? PC_inc : (memreg ? data_mem_data_out : ALU_out);
+//    assign reg_data_in = jump ? PC_inc : (memreg ? data_mem_out : ALU_out);
+    always @(*) begin
+        case (memreg)
+            2'b00: reg_data_in = data_mem_out;
+            2'b01: reg_data_in = ALU_out;
+            2'b10: reg_data_in = imm;
+            2'b11: reg_data_in = PC_inc;
+            default: reg_data_in = 32'd0;
+        endcase
+    end
 
+    immediate_form imm_form_inst (
+        .instruction(instruction),
+        .immediate(imm)
+    );
+    
     register_file regfile (
         .clk(clk),
         .rst(rst),
@@ -78,8 +99,8 @@ module datapath(
         .data2_out(data2_out)
     );
 
-    assign ALU_in1 = data1_out;
-    assign ALU_in2 = ALU_src ? imm_add : data2_out;
+    assign ALU_in1 = auipc ? PC : data1_out;
+    assign ALU_in2 = ALU_in_sel ? imm : data2_out;
 
     alu alu_inst(
         .a_n(ALU_op[5]),
@@ -94,10 +115,10 @@ module datapath(
 
     data_memory dmem (
         .address(ALU_out),
-        .data_in(data_mem_data_in),
+        .data_in(data_mem_in),
         .clk(clk),
-        .WR_E(data_mem_WR_E),
-        .RD_E(data_mem_RD_E),
+        .WR_E(d_wr_e),
+        .RD_E(d_rd_e),
         .sb(sb),
         .sh(sh),
         .sw(sw),
@@ -106,7 +127,7 @@ module datapath(
         .lw(lw),
         .lbu(lbu),
         .lhu(lhu),
-        .data_out(data_mem_data_out)
+        .data_out(data_mem_out)
     );
 
 endmodule

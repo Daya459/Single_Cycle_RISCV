@@ -1,6 +1,6 @@
 module immediate_form (
     input  [31:0] instruction,
-    output reg [31:0] immediate,
+    output reg [31:0] immediate
 );
 
 wire [6:0] op_code;
